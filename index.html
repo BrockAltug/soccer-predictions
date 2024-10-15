@@ -20,35 +20,40 @@
             text-align: center;
             font-size: 2rem;
             margin-bottom: 20px;
+            color: #ff5c5c;
         }
         .input-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
         }
         input[type="date"] {
-            padding: 10px;
-            font-size: 1.1em;
+            padding: 12px;
+            font-size: 1em;
             background-color: #333;
             color: #f0f0f0;
             border: none;
             border-radius: 5px;
-            width: 70%;
+            flex: 1;
+            margin-right: 10px;
         }
         button {
-            padding: 10px;
+            padding: 12px 20px;
             background-color: #ff5c5c;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1.1em;
-            width: 25%;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            margin: 5px 0;
+            flex: 0.2;
         }
         button:hover {
             background-color: #ff7f7f;
+            box-shadow: 0 4px 10px rgba(255, 92, 92, 0.4);
         }
         table {
             width: 100%;
@@ -59,7 +64,6 @@
             padding: 12px;
             border: 1px solid #333;
             text-align: center;
-            cursor: pointer;
         }
         th {
             background-color: #333;
@@ -70,7 +74,7 @@
             border: none;
             color: #ff5c5c;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
         tr:nth-child(even) {
             background-color: #1c1c1c;
@@ -85,11 +89,55 @@
             margin-top: 20px;
         }
         .h2h-row {
-            background-color: #333;
+            background-color: #2d2d2d;
             color: #fff;
         }
         .selected-section {
             margin-top: 40px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+        }
+        .button-group button {
+            margin: 5px;
+        }
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 0.9em;
+            }
+            input[type="date"], button {
+                flex: 1;
+                margin: 5px 0;
+            }
+            button {
+                padding: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            input[type="date"], button {
+                width: 100%;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+        .h2h-table {
+            width: 100%;
+            border: 1px solid #444;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+        .h2h-table th, .h2h-table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #444;
+            background-color: #333;
+            color: #fff;
+        }
+        .h2h-table th {
+            background-color: #444;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -109,18 +157,9 @@
         <tr>
             <th>Home Team</th>
             <th>Away Team</th>
-            <th>
-                League
-                <button class="sort-button" onclick="sortTable(2)">⬇️</button>
-            </th>
-            <th>
-                Match Time
-                <button class="sort-button" onclick="sortTable(3)">⬇️</button>
-            </th>
-            <th>
-                Both Will Score (%) & Times Played
-                <button class="sort-button" onclick="sortTable(4)">⬇️</button>
-            </th>
+            <th>League <button class="sort-button" onclick="sortTable(2)">⬇️</button></th>
+            <th>Match Time <button class="sort-button" onclick="sortTable(3)">⬇️</button></th>
+            <th>Both Will Score (%) & Times Played <button class="sort-button" onclick="sortTable(4)">⬇️</button></th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -177,7 +216,7 @@
             const h2hData = await fetchH2H(match.home_id, match.away_id);
             if (h2hData && h2hData.length > 0) {
                 const bothWillScorePercentage = calculateBothWillScore(h2hData);
-                
+
                 // Only display matches with a non-zero "Both Will Score" percentage
                 if (bothWillScorePercentage > 0) {
                     const row = document.createElement("tr");
@@ -206,11 +245,13 @@
                     const actionsCell = document.createElement("td");
                     const selectButton = document.createElement("button");
                     selectButton.textContent = "Select";
+                    selectButton.classList.add("action-button");
                     selectButton.onclick = () => selectMatch(match);
                     actionsCell.appendChild(selectButton);
 
                     const h2hButton = document.createElement("button");
                     h2hButton.textContent = "H2H";
+                    h2hButton.classList.add("action-button");
                     h2hButton.onclick = () => toggleH2H(h2hData, row);
                     actionsCell.appendChild(h2hButton);
 
@@ -257,17 +298,17 @@
         let bothScoreCount = 0;
         h2hData.forEach(match => {
             const score = match.score.split("-");
-            if (score.length === 2 && parseInt(score[0]) > 0 && parseInt(score[1]) > 0) {
+            if (score.length === 2 && parseInt(score[0]) > 0 && parseInt(score[1]) > 0) { // Ensure both teams scored
                 bothScoreCount++;
             }
         });
         return ((bothScoreCount / h2hData.length) * 100).toFixed(2);
     }
 
-    // Toggle H2H data under the match row
+    // Toggle H2H data under the match row and organize neatly into a table
     function toggleH2H(h2hData, matchRow) {
         const nextRow = matchRow.nextSibling;
-        
+
         // If the next row is already an H2H row, remove it (toggle off)
         if (nextRow && nextRow.classList.contains("h2h-row")) {
             nextRow.remove();
@@ -277,11 +318,35 @@
             h2hRow.classList.add("h2h-row");
 
             const h2hCell = document.createElement("td");
-            h2hCell.colSpan = 6; // Span across all columns
-            let h2hContent = '<strong>Head-to-Head:</strong><br>';
+            h2hCell.colSpan = 6;
+
+            // Create an H2H table
+            let h2hContent = `
+                <table class="h2h-table">
+                    <thead>
+                        <tr>
+                            <th>Home Team</th>
+                            <th>Score</th>
+                            <th>Away Team</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
             h2hData.forEach(match => {
-                h2hContent += `${match.home_name} ${match.score} ${match.away_name} (Date: ${formatDate(match.date, '')})<br>`;
+                h2hContent += `
+                    <tr>
+                        <td>${match.home_name}</td>
+                        <td>${match.score}</td>
+                        <td>${match.away_name}</td>
+                        <td>${formatDate(match.date, '')}</td>
+                    </tr>`;
             });
+
+            h2hContent += `
+                    </tbody>
+                </table>`;
+
             h2hCell.innerHTML = h2hContent;
             h2hRow.appendChild(h2hCell);
 
@@ -324,6 +389,7 @@
         const actionsCell = document.createElement("td");
         const removeButton = document.createElement("button");
         removeButton.textContent = "Remove";
+        removeButton.classList.add("action-button");
         removeButton.onclick = () => row.remove();
         actionsCell.appendChild(removeButton);
 
