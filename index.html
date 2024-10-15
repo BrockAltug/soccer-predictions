@@ -234,7 +234,7 @@
                     row.appendChild(leagueCell);
 
                     const matchTimeCell = document.createElement("td");
-                    const formattedTime = formatDate(match.date, match.time);
+                    const formattedTime = formatDateToPacific(match.date, match.time);
                     matchTimeCell.textContent = formattedTime;
                     row.appendChild(matchTimeCell);
 
@@ -262,12 +262,19 @@
         }
     }
 
-    // Function to format date to "[time] month, day, year"
-    function formatDate(date, time) {
-        const dateObj = new Date(date);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = dateObj.toLocaleDateString('en-US', options);
-        return `[${time}] ${formattedDate}`;
+    // Function to format date and time to Pacific Time (PST/PDT)
+    function formatDateToPacific(date, time) {
+        const dateObj = new Date(date + 'T' + time + 'Z');
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Los_Angeles',
+            timeZoneName: 'short'
+        };
+        return dateObj.toLocaleString('en-US', options);
     }
 
     // Fetch head-to-head data for two teams and filter it to the last 3 years
@@ -339,7 +346,7 @@
                         <td>${match.home_name}</td>
                         <td>${match.score}</td>
                         <td>${match.away_name}</td>
-                        <td>${formatDate(match.date, '')}</td>
+                        <td>${formatDateToPacific(match.date, '')}</td>
                     </tr>`;
             });
 
