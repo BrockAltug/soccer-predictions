@@ -155,6 +155,10 @@
         .hover-highlight {
             outline: 2px solid #f59c2f;
         }
+        .initial-highlight {
+        background-color: rgba(255, 123, 0, 0.5); /* Example highlight color */
+        transition: background-color 0.5s ease; /* Gradual transition out */
+        }
     </style>
 </head>
 <body>
@@ -298,6 +302,14 @@
 
                     row.appendChild(actionsCell);
                     tableBody.appendChild(row);
+
+                    // Always active hover effect for the parent row
+                    row.onmouseover = () => {
+                        row.classList.add("hover-highlight-row");
+                    };
+                    row.onmouseout = () => {
+                        row.classList.remove("hover-highlight-row");
+                    };
                 }
             }
         }
@@ -347,58 +359,73 @@
     }
 
     function toggleH2H(h2hData, matchRow) {
-        const nextRow = matchRow.nextSibling;
-        if (nextRow && nextRow.classList.contains("h2h-row")) {
-            nextRow.remove(); // Remove H2H row if it's already displayed
-        } else {
-            const h2hRow = document.createElement("tr");
-            h2hRow.classList.add("h2h-row");
+    const nextRow = matchRow.nextSibling;
+    if (nextRow && nextRow.classList.contains("h2h-row")) {
+        nextRow.remove(); // Remove H2H row if it's already displayed
+    } else {
+        const h2hRow = document.createElement("tr");
+        h2hRow.classList.add("h2h-row");
 
-            const h2hCell = document.createElement("td");
-            h2hCell.colSpan = 6;
+        const h2hCell = document.createElement("td");
+        h2hCell.colSpan = 6;
 
-            let h2hContent = `
-                <table class="h2h-table">
-                    <thead>
-                        <tr>
-                            <th>Home Team</th>
-                            <th>Score</th>
-                            <th>Away Team</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
-            h2hData.forEach(match => {
-                h2hContent += `
+        let h2hContent = `
+            <table class="h2h-table">
+                <thead>
                     <tr>
-                        <td>${match.home_name}</td>
-                        <td>${match.score}</td>
-                        <td>${match.away_name}</td>
-                        <td>${formatDateForH2H(match.date)}</td>
-                    </tr>`;
-            });
+                        <th>Home Team</th>
+                        <th>Score</th>
+                        <th>Away Team</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
+        h2hData.forEach(match => {
             h2hContent += `
-                    </tbody>
-                </table>`;
+                <tr>
+                    <td>${match.home_name}</td>
+                    <td>${match.score}</td>
+                    <td>${match.away_name}</td>
+                    <td>${formatDateForH2H(match.date)}</td>
+                </tr>`;
+        });
 
-            h2hCell.innerHTML = h2hContent;
-            h2hRow.appendChild(h2hCell);
+        h2hContent += `
+                </tbody>
+            </table>`;
 
-            matchRow.parentNode.insertBefore(h2hRow, matchRow.nextSibling);
+        h2hCell.innerHTML = h2hContent;
+        h2hRow.appendChild(h2hCell);
 
-            // Apply hover effect to both the H2H table and the corresponding match row
-            h2hRow.onmouseover = () => {
-                matchRow.classList.add("hover-highlight-row");
-                h2hRow.classList.add("hover-highlight");
-            };
-            h2hRow.onmouseout = () => {
-                matchRow.classList.remove("hover-highlight-row");
-                h2hRow.classList.remove("hover-highlight");
-            };
-        }
+        matchRow.parentNode.insertBefore(h2hRow, matchRow.nextSibling);
+
+        // Apply an initial highlight to the H2H row
+        h2hRow.classList.add("initial-highlight");
+        setTimeout(() => {
+            h2hRow.classList.remove("initial-highlight");
+        }, 1000); // Highlight will last for 1 second
+
+        // Apply hover effect to both the H2H table and the corresponding match row
+        h2hRow.onmouseover = () => {
+            matchRow.classList.add("hover-highlight-row");
+            h2hRow.classList.add("hover-highlight");
+        };
+        h2hRow.onmouseout = () => {
+            matchRow.classList.remove("hover-highlight-row");
+            h2hRow.classList.remove("hover-highlight");
+        };
+
+        matchRow.onmouseover = () => {
+            matchRow.classList.add("hover-highlight-row");
+            h2hRow.classList.add("hover-highlight");
+        };
+        matchRow.onmouseout = () => {
+            matchRow.classList.remove("hover-highlight-row");
+            h2hRow.classList.remove("hover-highlight");
+        };
     }
+}
 
     function formatDateForH2H(date) {
         const dateObj = new Date(date);
