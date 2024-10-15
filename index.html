@@ -150,14 +150,15 @@
         }
         /* Hover effect for H2H table and the corresponding match row */
         .hover-highlight-row {
-            outline: 2px solid #f59c2f;;
-        }
+        outline: 2px solid #f59c2f;
+}
         .hover-highlight {
             outline: 2px solid #f59c2f;
+            background-color: #f59c2f;
         }
         .initial-highlight {
-        background-color: rgba(255, 123, 0, 0.5); /* Example highlight color */
-        transition: background-color 0.5s ease; /* Gradual transition out */
+            outline: 2px solid #f59c2f;
+            background-color: #f59c2f;
         }
     </style>
 </head>
@@ -402,29 +403,36 @@
 
         // Apply an initial highlight to the H2H row
         h2hRow.classList.add("initial-highlight");
-        setTimeout(() => {
-            h2hRow.classList.remove("initial-highlight");
-        }, 1000); // Highlight will last for 1 second
 
-        // Apply hover effect to both the H2H table and the corresponding match row
-        h2hRow.onmouseover = () => {
+        // Function to add hover classes
+        function addHoverClasses() {
             matchRow.classList.add("hover-highlight-row");
             h2hRow.classList.add("hover-highlight");
-        };
-        h2hRow.onmouseout = () => {
-            matchRow.classList.remove("hover-highlight-row");
-            h2hRow.classList.remove("hover-highlight");
-        };
+        }
 
-        matchRow.onmouseover = () => {
-            matchRow.classList.add("hover-highlight-row");
-            h2hRow.classList.add("hover-highlight");
-        };
-        matchRow.onmouseout = () => {
+        // Function to remove hover classes
+        function removeHoverClasses() {
             matchRow.classList.remove("hover-highlight-row");
             h2hRow.classList.remove("hover-highlight");
-        };
+        }
+
+        // Set initial highlight to be removed when mouse leaves both matchRow and h2hRow
+        function handleMouseOut(event) {
+            // Check if mouse left both matchRow and h2hRow elements
+            const relatedTarget = event.relatedTarget;
+            if (!matchRow.contains(relatedTarget) && !h2hRow.contains(relatedTarget)) {
+                h2hRow.classList.remove("initial-highlight");
+                removeHoverClasses();
+            }
+        }
+
+        // Apply event listeners for hover effect
+        h2hRow.addEventListener("mouseover", addHoverClasses);
+        h2hRow.addEventListener("mouseout", handleMouseOut);
+        matchRow.addEventListener("mouseover", addHoverClasses);
+        matchRow.addEventListener("mouseout", handleMouseOut);
     }
+
 }
 
     function formatDateForH2H(date) {
