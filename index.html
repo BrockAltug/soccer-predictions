@@ -212,47 +212,56 @@
     let matchData = [];
 
     // Fetch all matches for a specific date
-    async function fetchMatches() {
-        document.getElementById('loadingSpinner').style.display = 'block'; // Show loading spinner
-        document.getElementById("message").textContent = ""; // Clear message
-        clearTable("gamesTable"); // Clear previous matches
-
-        const selectedDate = new Date(document.getElementById("gameDate").value);
-
-        // Add +1 day to fix the timezone shift issue
-        selectedDate.setDate(selectedDate.getDate() + 1);
-
-        // Convert selected date to local start and end times (PDT)
-        const startOfDay = new Date(selectedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(selectedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-        
-        const url = `${apiFIXTURESUrl}?key=${apiKey}&secret=${apiSecret}&date=${selectedDate.toISOString().split('T')[0]}`;
-
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (data.success && data.data.fixtures.length > 0) {
-                matchData = data.data.fixtures.filter(match => {
-                    const matchDateTime = new Date(`${match.date}T${match.time}Z`);
-                    return matchDateTime >= startOfDay && matchDateTime <= endOfDay;
-                });
-
-                matchData.sort((a, b) => new Date(`${a.date}T${a.time}Z`) - new Date(`${b.date}T${b.time}Z`));
-
-                await displayMatches(matchData);
-            } else {
-                document.getElementById("message").innerHTML = "No matches found for the selected date.";
-                clearTable("gamesTable");
-            }
-        } catch (error) {
-            document.getElementById("message").innerHTML = "Error fetching matches.";
-        }
-
-        document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after all matches loaded
+async function fetchMatches() {
+    const selectedDateValue = document.getElementById("gameDate").value;
+    
+    // Check if the date is selected
+    if (!selectedDateValue) {
+        document.getElementById("message").textContent = "Please select a date before fetching matches.";
+        return; // Stop further execution if no date is selected
     }
+    
+    // If a date is selected, proceed with fetching matches
+    document.getElementById('loadingSpinner').style.display = 'block'; // Show loading spinner
+    document.getElementById("message").textContent = ""; // Clear message
+    clearTable("gamesTable"); // Clear previous matches
+
+    const selectedDate = new Date(selectedDateValue);
+
+    // Add +1 day to fix the timezone shift issue
+    selectedDate.setDate(selectedDate.getDate() + 1);
+
+    // Convert selected date to local start and end times (PDT)
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const url = `${apiFIXTURESUrl}?key=${apiKey}&secret=${apiSecret}&date=${selectedDate.toISOString().split('T')[0]}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.success && data.data.fixtures.length > 0) {
+            matchData = data.data.fixtures.filter(match => {
+                const matchDateTime = new Date(`${match.date}T${match.time}Z`);
+                return matchDateTime >= startOfDay && matchDateTime <= endOfDay;
+            });
+
+            matchData.sort((a, b) => new Date(`${a.date}T${a.time}Z`) - new Date(`${b.date}T${b.time}Z`));
+
+            await displayMatches(matchData);
+        } else {
+            document.getElementById("message").innerHTML = "No matches found for the selected date.";
+            clearTable("gamesTable");
+        }
+    } catch (error) {
+        document.getElementById("message").innerHTML = "Error fetching matches.";
+    }
+
+    document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after all matches loaded
+}
 
     // Display the matches in the table
     async function displayMatches(matches) {
