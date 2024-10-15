@@ -231,14 +231,10 @@
 
             if (data.success && data.data.fixtures.length > 0) {
                 matchData = data.data.fixtures.filter(match => {
-                    // Convert match date and time to PDT
                     const matchDateTime = new Date(`${match.date}T${match.time}Z`);
-
-                    // Check if match falls within the selected date's local time (from midnight to midnight)
                     return matchDateTime >= startOfDay && matchDateTime <= endOfDay;
                 });
 
-                // Sort matches by time after loading all games
                 matchData.sort((a, b) => new Date(`${a.date}T${a.time}Z`) - new Date(`${b.date}T${b.time}Z`));
 
                 await displayMatches(matchData);
@@ -329,13 +325,7 @@
             const response = await fetch(url);
             const data = await response.json();
             if (data.success && data.data.h2h.length > 0) {
-                const recentH2H = data.data.h2h.filter(match => {
-                    const matchDate = new Date(match.date);
-                    if (!isNaN(matchDate)) {
-                        return match;
-                    }
-                });
-                return recentH2H;
+                return data.data.h2h;
             } else {
                 return [];
             }
@@ -359,7 +349,7 @@
     function toggleH2H(h2hData, matchRow) {
         const nextRow = matchRow.nextSibling;
         if (nextRow && nextRow.classList.contains("h2h-row")) {
-            nextRow.remove();
+            nextRow.remove(); // Remove H2H row if it's already displayed
         } else {
             const h2hRow = document.createElement("tr");
             h2hRow.classList.add("h2h-row");
@@ -408,6 +398,12 @@
                 h2hRow.classList.remove("hover-highlight");
             };
         }
+    }
+
+    function formatDateForH2H(date) {
+        const dateObj = new Date(date);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return dateObj.toLocaleDateString('en-US', options);
     }
 
     function selectMatch(match) {
