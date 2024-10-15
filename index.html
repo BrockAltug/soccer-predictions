@@ -195,7 +195,7 @@
                     row.appendChild(leagueCell);
 
                     const matchTimeCell = document.createElement("td");
-                    const formattedTime = formatMatchTime(match.date, match.time);
+                    const formattedTime = formatDate(match.date, match.time);
                     matchTimeCell.textContent = formattedTime;
                     row.appendChild(matchTimeCell);
 
@@ -221,10 +221,12 @@
         }
     }
 
-    // Function to format match time to "[time] DD-MM-YY"
-    function formatMatchTime(date, time) {
-        const [year, month, day] = date.split("-");
-        return `[${time}] ${day}-${month}-${year.slice(2)}`;
+    // Function to format date to "[time] month, day, year"
+    function formatDate(date, time) {
+        const dateObj = new Date(date);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = dateObj.toLocaleDateString('en-US', options);
+        return `[${time}] ${formattedDate}`;
     }
 
     // Fetch head-to-head data for two teams and filter it to the last 3 years
@@ -278,7 +280,7 @@
             h2hCell.colSpan = 6; // Span across all columns
             let h2hContent = '<strong>Head-to-Head:</strong><br>';
             h2hData.forEach(match => {
-                h2hContent += `${match.home_name} ${match.score} ${match.away_name} (Date: ${match.date})<br>`;
+                h2hContent += `${match.home_name} ${match.score} ${match.away_name} (Date: ${formatDate(match.date, '')})<br>`;
             });
             h2hCell.innerHTML = h2hContent;
             h2hRow.appendChild(h2hCell);
