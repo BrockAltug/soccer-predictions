@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Match Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f0f0f0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        input[type="date"] {
+            padding: 10px;
+            font-size: 1.1em;
+            background-color: #333;
+            color: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            width: 70%;
+        }
+        button {
+            padding: 10px;
+            background-color: #ff5c5c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 25%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff7f7f;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #333;
+            text-align: center;
+            cursor: pointer;
+        }
+        th {
+            background-color: #333;
+            color: white;
+        }
+        .sort-button {
+            background-color: transparent;
+            border: none;
+            color: #ff5c5c;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        tr:nth-child(even) {
+            background-color: #1c1c1c;
+        }
+        tr:hover {
+            background-color: #3a3a3a;
+        }
+        .message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #ff5c5c;
+            margin-top: 20px;
+        }
+        .h2h-row {
+            background-color: #333;
+            color: #fff;
+        }
+        .selected-section {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Soccer Match Tracker</h1>
+
+<div class="input-row">
+    <input type="date" id="gameDate">
+    <button onclick="fetchMatches()">Fetch Matches</button>
+</div>
+
+<div id="message" class="message"></div>
+
+<table id="gamesTable">
+    <thead>
+        <tr>
+            <th>Home Team</th>
+            <th>Away Team</th>
+            <th>
+                League
+                <button class="sort-button" onclick="sortTable(2)">⬇️</button>
+            </th>
+            <th>
+                Match Time
+                <button class="sort-button" onclick="sortTable(3)">⬇️</button>
+            </th>
+            <th>
+                Both Will Score (%) & Times Played
+                <button class="sort-button" onclick="sortTable(4)">⬇️</button>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="selected-section">
+    <h2>Selected Matches</h2>
+    <table id="selectedMatchesTable">
+        <thead>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>League</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    const apiKey = "1TZAIsyLCTfDqKFo";
+    const apiSecret = "N71qD7oRYaZIoZkqSj1BLzmosC2TmHia";
+    const apiFIXTURESUrl = "https://livescore-api.com/api-client/fixtures/matches.json";
+    const apiH2HUrl = "https://livescore-api.com/api-client/teams/head2head.json";
+    let matchData = [];
+
+    // Fetch all matches for a specific date
+    async function fetchMatches() {
+        const date = document.getElementById("gameDate").value;
+        const url = `${apiFIXTURESUrl}?key=${apiKey}&secret=${apiSecret}&date=${date}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.success && data.data.fixtures.length > 0) {
+                matchData = data.data.fixtures;
+                await displayMatches(matchData);
+            } else {
+                document.getElementById("message").innerHTML = "No matches found for the selected date.";
+                clearTable("gamesTable");
+            }
+        } catch (error) {
+            document.getElementById("message").innerHTML = "Error fetching matches.";
+        }
+    }
+
+    // Display the matches in the table
+    async function displayMatches(matches) {
+        clearTable("gamesTable");
+        const tableBody = document.querySelector("#gamesTable tbody");
+
+        for (const match of matches) {
+            const h2hData = await fetchH2H(match.home_id, match.away_id);
+            if (h2hData && h2hData.length > 0) {
+                const bothWillScorePercentage = calculateBothWillScore(h2hData);
+                
+                // Only display matches with a non-zero "Both Will Score" percentage
+                if (bothWillScorePercentage > 0) {
+                    const row = document.createElement("tr");
+
+                    const homeTeamCell = document.createElement("td");
+                    homeTeamCell.textContent = match.home_name;
+                    row.appendChild(homeTeamCell);
+
+                    const awayTeamCell = document.createElement("td");
+                    awayTeamCell.textContent = match.away_name;
+                    row.appendChild(awayTeamCell);
+
+                    const leagueCell = document.createElement("td");
+                    leagueCell.textContent = match.competition.name;
+                    row.appendChild(leagueCell);
+
+                    const matchTimeCell = document.createElement("td");
+                    const formattedTime = formatMatchTime(match.date, match.time);
+                    matchTimeCell.textContent = formattedTime;
+                    row.appendChild(matchTimeCell);
+
+                    const bothWillScoreCell = document.createElement("td");
+                    bothWillScoreCell.textContent = `${bothWillScorePercentage}% (${h2hData.length} times)`;
+                    row.appendChild(bothWillScoreCell);
+
+                    const actionsCell = document.createElement("td");
+                    const selectButton = document.createElement("button");
+                    selectButton.textContent = "Select";
+                    selectButton.onclick = () => selectMatch(match);
+                    actionsCell.appendChild(selectButton);
+
+                    const h2hButton = document.createElement("button");
+                    h2hButton.textContent = "H2H";
+                    h2hButton.onclick = () => toggleH2H(h2hData, row);
+                    actionsCell.appendChild(h2hButton);
+
+                    row.appendChild(actionsCell);
+                    tableBody.appendChild(row);
+                }
+            }
+        }
+    }
+
+    // Function to format match time to "[time] DD-MM-YY"
+    function formatMatchTime(date, time) {
+        const [year, month, day] = date.split("-");
+        return `[${time}] ${day}-${month}-${year.slice(2)}`;
+    }
+
+    // Fetch head-to-head data for two teams and filter it to the last 3 years
+    async function fetchH2H(homeID, awayID) {
+        const url = `${apiH2HUrl}?key=${apiKey}&secret=${apiSecret}&team1_id=${homeID}&team2_id=${awayID}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.success && data.data.h2h.length > 0) {
+                const recentH2H = data.data.h2h.filter(match => {
+                    const matchDate = new Date(match.date);
+                    const currentDate = new Date();
+                    const threeYearsAgo = new Date(currentDate.setFullYear(currentDate.getFullYear() - 3));
+                    return matchDate >= threeYearsAgo;
+                });
+                return recentH2H;
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.error("Error fetching H2H data:", error);
+            return [];
+        }
+    }
+
+    // Calculate the "Both Will Score" percentage
+    function calculateBothWillScore(h2hData) {
+        let bothScoreCount = 0;
+        h2hData.forEach(match => {
+            const score = match.score.split("-");
+            if (score.length === 2 && parseInt(score[0]) > 0 && parseInt(score[1]) > 0) {
+                bothScoreCount++;
+            }
+        });
+        return ((bothScoreCount / h2hData.length) * 100).toFixed(2);
+    }
+
+    // Toggle H2H data under the match row
+    function toggleH2H(h2hData, matchRow) {
+        const nextRow = matchRow.nextSibling;
+        
+        // If the next row is already an H2H row, remove it (toggle off)
+        if (nextRow && nextRow.classList.contains("h2h-row")) {
+            nextRow.remove();
+        } else {
+            // Otherwise, create and insert a new H2H row (toggle on)
+            const h2hRow = document.createElement("tr");
+            h2hRow.classList.add("h2h-row");
+
+            const h2hCell = document.createElement("td");
+            h2hCell.colSpan = 6; // Span across all columns
+            let h2hContent = '<strong>Head-to-Head:</strong><br>';
+            h2hData.forEach(match => {
+                h2hContent += `${match.home_name} ${match.score} ${match.away_name} (Date: ${match.date})<br>`;
+            });
+            h2hCell.innerHTML = h2hContent;
+            h2hRow.appendChild(h2hCell);
+
+            // Insert the H2H row right after the match row
+            matchRow.parentNode.insertBefore(h2hRow, matchRow.nextSibling);
+        }
+    }
+
+    // Sort the table by the specified column index
+    function sortTable(columnIndex) {
+        const tableBody = document.querySelector("#gamesTable tbody");
+        const rows = Array.from(tableBody.rows);
+        const sortedRows = rows.sort((a, b) => {
+            const textA = a.cells[columnIndex].textContent.toUpperCase();
+            const textB = b.cells[columnIndex].textContent.toUpperCase();
+            return textA.localeCompare(textB);
+        });
+        tableBody.innerHTML = "";
+        sortedRows.forEach(row => tableBody.appendChild(row));
+    }
+
+    // Select a match and add it to the "Selected Matches" table
+    function selectMatch(match) {
+        const tableBody = document.querySelector("#selectedMatchesTable tbody");
+
+        const row = document.createElement("tr");
+
+        const homeTeamCell = document.createElement("td");
+        homeTeamCell.textContent = match.home_name;
+        row.appendChild(homeTeamCell);
+
+        const awayTeamCell = document.createElement("td");
+        awayTeamCell.textContent = match.away_name;
+        row.appendChild(awayTeamCell);
+
+        const leagueCell = document.createElement("td");
+        leagueCell.textContent = match.competition.name;
+        row.appendChild(leagueCell);
+
+        const actionsCell = document.createElement("td");
+        const removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.onclick = () => row.remove();
+        actionsCell.appendChild(removeButton);
+
+        row.appendChild(actionsCell);
+        tableBody.appendChild(row);
+    }
+
+    // Clear table before populating new data
+    function clearTable(tableId) {
+        const tableBody = document.querySelector(`#${tableId} tbody`);
+        tableBody.innerHTML = ""; // Clear previous results
+    }
+</script>
+</body>
+</html>
