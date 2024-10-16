@@ -78,11 +78,12 @@
     
         .table-container {
             width: 100%;
-            max-width: 800px; /* Ensures consistent width across devices */
+            max-width: 800px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            overflow-x: auto; /* Allows table to scroll horizontally if content is too wide */
         }
     
         table {
@@ -95,6 +96,7 @@
             padding: 12px;
             border: 1px solid #333;
             text-align: center;
+            word-wrap: break-word; /* Ensures text breaks within the cell for long content */
         }
     
         th {
@@ -126,10 +128,10 @@
         .available-section {
             margin-top: 40px;
             width: 100%;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Centers the content */
-            max-width: 800px;
+            align-items: center;
         }
     
         .selected-section h2,
@@ -146,7 +148,7 @@
             .selected-section,
             .available-section {
                 margin-top: 20px;
-                width: 100%; /* Ensures full width for mobile */
+                width: 100%;
             }
             th, td {
                 font-size: 0.9em;
@@ -161,13 +163,16 @@
             table {
                 width: 100%;
             }
+            .table-container {
+                overflow-x: scroll; /* Ensures table scrolls if it overflows on smaller screens */
+            }
         }
     
         @media (max-width: 480px) {
             .selected-section,
             .available-section {
                 margin-top: 15px;
-                width: 100%; /* Ensures that sections take up full width */
+                width: 100%;
             }
             input[type="date"], button {
                 width: 100%;
