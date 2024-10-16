@@ -10,6 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+    
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #121212;
@@ -20,6 +21,7 @@
             align-items: center;
             min-height: 100vh;
         }
+    
         h1 {
             text-align: center;
             font-size: 2rem;
@@ -27,6 +29,7 @@
             color: #ff5c5c;
             width: 100%;
         }
+    
         .content {
             display: flex;
             flex-direction: column;
@@ -34,6 +37,7 @@
             justify-content: center;
             width: 100%;
         }
+    
         .input-row {
             display: flex;
             justify-content: center;
@@ -43,6 +47,7 @@
             gap: 10px;
             width: 100%;
         }
+    
         input[type="date"] {
             padding: 12px;
             font-size: 1em;
@@ -53,6 +58,7 @@
             max-width: 250px;
             text-align: center;
         }
+    
         button {
             padding: 12px 20px;
             background-color: #ff5c5c;
@@ -64,31 +70,38 @@
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
             max-width: 150px;
         }
+    
         button:hover {
             background-color: #ff7f7f;
             box-shadow: 0 4px 10px rgba(255, 92, 92, 0.4);
         }
+    
         .table-container {
             width: 100%;
+            max-width: 800px; /* Ensures consistent width across devices */
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
+    
         table {
             width: 100%;
-            max-width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
+    
         th, td {
             padding: 12px;
             border: 1px solid #333;
             text-align: center;
         }
+    
         th {
             background-color: #333;
             color: white;
         }
+    
         .sort-button {
             background-color: transparent;
             border: none;
@@ -96,28 +109,45 @@
             cursor: pointer;
             font-size: 1.1rem;
         }
+    
         .message {
             text-align: center;
             font-size: 1.2em;
             color: #ff5c5c;
             margin-top: 20px;
         }
+    
         .h2h-row {
             background-color: #2d2d2d;
             color: #fff;
         }
-        .selected-section, .available-section {
+    
+        .selected-section,
+        .available-section {
             margin-top: 40px;
             width: 100%;
-        }
-        .button-group {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center; /* Centers the content */
+            max-width: 800px;
         }
-        .button-group button {
-            margin: 5px;
+    
+        .selected-section h2,
+        .available-section h2 {
+            font-size: 2rem;
+            color: #ff5c5c;
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: center;
         }
+    
+        /* Mobile responsiveness for tables */
         @media (max-width: 768px) {
+            .selected-section,
+            .available-section {
+                margin-top: 20px;
+                width: 100%; /* Ensures full width for mobile */
+            }
             th, td {
                 font-size: 0.9em;
             }
@@ -128,21 +158,35 @@
             button {
                 padding: 10px;
             }
+            table {
+                width: 100%;
+            }
         }
+    
         @media (max-width: 480px) {
+            .selected-section,
+            .available-section {
+                margin-top: 15px;
+                width: 100%; /* Ensures that sections take up full width */
+            }
             input[type="date"], button {
                 width: 100%;
             }
             h1 {
                 font-size: 1.5rem;
             }
+            th, td {
+                font-size: 0.8em;
+            }
         }
+    
         .h2h-table {
             width: 100%;
             border: 1px solid #444;
             margin-top: 10px;
             border-collapse: collapse;
         }
+    
         .h2h-table th, .h2h-table td {
             padding: 8px;
             text-align: center;
@@ -150,10 +194,12 @@
             background-color: #333;
             color: #fff;
         }
+    
         .h2h-table th {
             background-color: #444;
             font-weight: bold;
         }
+    
         .loading-spinner {
             border: 5px solid #f3f3f3;
             border-top: 5px solid #ff5c5c;
@@ -165,28 +211,25 @@
             margin: 0 auto;
             margin-top: 20px;
         }
+    
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+    
+        /* Hover effect for H2H table and the corresponding match row */
         .hover-highlight-row {
             outline: 2px solid #f59c2f;
         }
+    
         .hover-highlight {
             outline: 2px solid #f59c2f;
             background-color: #f59c2f;
         }
+    
         .initial-highlight {
             outline: 2px solid #f59c2f;
             background-color: #f59c2f;
-        }
-        .available-section h2,
-        .selected-section h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #ff5c5c;
-            width: 100%;
         }
     </style>
 </head>
