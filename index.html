@@ -40,7 +40,7 @@
             align-items: center;
             margin-bottom: 15px;
             flex-wrap: wrap;
-            gap: 10px; /* Adds spacing between input and button */
+            gap: 10px;
             width: 100%;
         }
         input[type="date"] {
@@ -50,7 +50,7 @@
             color: #f0f0f0;
             border: none;
             border-radius: 5px;
-            max-width: 250px; /* Limits the input width */
+            max-width: 250px;
             text-align: center;
         }
         button {
@@ -68,8 +68,15 @@
             background-color: #ff7f7f;
             box-shadow: 0 4px 10px rgba(255, 92, 92, 0.4);
         }
+        .table-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
         table {
             width: 100%;
+            max-width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
@@ -99,7 +106,7 @@
             background-color: #2d2d2d;
             color: #fff;
         }
-        .selected-section {
+        .selected-section, .available-section {
             margin-top: 40px;
             width: 100%;
         }
@@ -162,7 +169,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* Hover effect for H2H table and the corresponding match row */
         .hover-highlight-row {
             outline: 2px solid #f59c2f;
         }
@@ -174,13 +180,12 @@
             outline: 2px solid #f59c2f;
             background-color: #f59c2f;
         }
-        .selected-matches-header {
+        .available-section h2,
+        .selected-section h2 {
             text-align: center;
-            color: #ff5c5c;
-            margin-bottom: 10px;
-        }
-        #gamesTable {
+            font-size: 2rem;
             margin-bottom: 20px;
+            color: #ff5c5c;
             width: 100%;
         }
     </style>
@@ -198,21 +203,24 @@
 
 <div id="message" class="message"></div>
 
-<table id="gamesTable">
-    <thead>
-        <tr>
-            <th>Home Team</th>
-            <th>Away Team</th>
-            <th>League</th>
-            <th>Match Time</th>
-            <th>Both Will Score (%) & Times Played</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+<div class="table-container available-section">
+    <h2 class="selected-matches-header">Available Matches</h2>
+    <table id="gamesTable">
+        <thead>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>League</th>
+                <th>Match Time</th>
+                <th>Both Will Score (%) & Times Played</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-<div class="selected-section">
+<div class="table-container selected-section">
     <h2 class="selected-matches-header">Selected Matches</h2>
     <table id="selectedMatchesTable">
         <thead>
