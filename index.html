@@ -291,58 +291,58 @@
     let matchData = [];
 
     // Fetch all matches for a specific date
-async function fetchMatches() {
-    const selectedDateValue = document.getElementById("gameDate").value;
-    
-    // Check if the date is selected
-    if (!selectedDateValue) {
-        document.getElementById("message").textContent = "Please select a date before fetching matches.";
-        return; // Stop further execution if no date is selected
-    }
-    
-    // If a date is selected, proceed with fetching matches
-    document.getElementById('loadingSpinner').style.display = 'block'; // Show loading spinner
-    document.getElementById("message").textContent = ""; // Clear message
-    clearTable("gamesTable"); // Clear previous matches
+    async function fetchMatches() {
+        const selectedDateValue = document.getElementById("gameDate").value;
 
-    const selectedDate = new Date(selectedDateValue);
-
-    // Add +1 day to fix the timezone shift issue
-    selectedDate.setDate(selectedDate.getDate() + 1);
-
-    // Convert selected date to local start and end times (PDT)
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    
-    const url = `${apiFIXTURESUrl}?key=${apiKey}&secret=${apiSecret}&date=${selectedDate.toISOString().split('T')[0]}`;
-
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.success && data.data.fixtures.length > 0) {
-            matchData = data.data.fixtures.filter(match => {
-                const matchDateTime = new Date(`${match.date}T${match.time}Z`);
-                return matchDateTime >= startOfDay && matchDateTime <= endOfDay;
-            });
-
-            matchData.sort((a, b) => new Date(`${a.date}T${a.time}Z`) - new Date(`${b.date}T${b.time}Z`));
-
-            await displayMatches(matchData);
-        } else {
-            document.getElementById("message").innerHTML = "No matches found for the selected date.";
-            clearTable("gamesTable");
+        // Check if the date is selected
+        if (!selectedDateValue) {
+            document.getElementById("message").textContent = "Please select a date before fetching matches.";
+            return; // Stop further execution if no date is selected
         }
-    } catch (error) {
-        document.getElementById("message").innerHTML = "Error fetching matches.";
+
+        // Show loading spinner and clear previous matches
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById("message").textContent = "";
+        clearTable("gamesTable");
+
+        const selectedDate = new Date(selectedDateValue);
+
+        // Add +1 day to fix timezone shift issue
+        selectedDate.setDate(selectedDate.getDate() + 1);
+
+        // Convert selected date to local start and end times (PDT)
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const url = `${apiFIXTURESUrl}?key=${apiKey}&secret=${apiSecret}&date=${selectedDate.toISOString().split('T')[0]}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success && data.data.fixtures.length > 0) {
+                matchData = data.data.fixtures.filter(match => {
+                    const matchDateTime = new Date(`${match.date}T${match.time}Z`);
+                    return matchDateTime >= startOfDay && matchDateTime <= endOfDay;
+                });
+
+                matchData.sort((a, b) => new Date(`${a.date}T${a.time}Z`) - new Date(`${b.date}T${b.time}Z`));
+
+                await displayMatches(matchData);
+            } else {
+                document.getElementById("message").innerHTML = "No matches found for the selected date.";
+                clearTable("gamesTable");
+            }
+        } catch (error) {
+            document.getElementById("message").innerHTML = "Error fetching matches.";
+        }
+
+        document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after matches loaded
     }
 
-    document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after all matches loaded
-}
-
-    // Display the matches in the table
+    // Display the matches in a grid format
     async function displayMatches(matches) {
         const tableBody = document.querySelector("#gamesTable tbody");
 
@@ -392,7 +392,7 @@ async function fetchMatches() {
                     row.appendChild(actionsCell);
                     tableBody.appendChild(row);
 
-                    // Always active hover effect for the parent row
+                    // Apply hover effect for the row
                     row.onmouseover = () => {
                         row.classList.add("hover-highlight-row");
                     };
@@ -403,11 +403,12 @@ async function fetchMatches() {
             }
         }
 
-        document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after all matches loaded
+        document.getElementById('loadingSpinner').style.display = 'none'; // Hide loading spinner after matches loaded
     }
 
+    // Format date to Pacific timezone
     function formatDateToPacific(date, time) {
-        const dateObj = new Date(date + 'T' + time + 'Z');
+        const dateObj = new Date(`${date}T${time}Z`);
         const options = {
             year: 'numeric',
             month: 'long',
@@ -420,6 +421,7 @@ async function fetchMatches() {
         return dateObj.toLocaleString('en-US', options);
     }
 
+    // Fetch head-to-head data for the two teams
     async function fetchH2H(homeID, awayID) {
         const url = `${apiH2HUrl}?key=${apiKey}&secret=${apiSecret}&team1_id=${homeID}&team2_id=${awayID}`;
         try {
@@ -436,6 +438,7 @@ async function fetchMatches() {
         }
     }
 
+    // Calculate percentage of matches where both teams scored
     function calculateBothWillScore(h2hData) {
         let bothScoreCount = 0;
         h2hData.forEach(match => {
@@ -447,88 +450,90 @@ async function fetchMatches() {
         return ((bothScoreCount / h2hData.length) * 100).toFixed(2);
     }
 
+    // Toggle head-to-head data for a match
     function toggleH2H(h2hData, matchRow) {
-    const nextRow = matchRow.nextSibling;
-    if (nextRow && nextRow.classList.contains("h2h-row")) {
-        nextRow.remove(); // Remove H2H row if it's already displayed
-    } else {
-        const h2hRow = document.createElement("tr");
-        h2hRow.classList.add("h2h-row");
+        const nextRow = matchRow.nextSibling;
+        if (nextRow && nextRow.classList.contains("h2h-row")) {
+            nextRow.remove(); // Remove H2H row if already displayed
+        } else {
+            const h2hRow = document.createElement("tr");
+            h2hRow.classList.add("h2h-row");
 
-        const h2hCell = document.createElement("td");
-        h2hCell.colSpan = 6;
+            const h2hCell = document.createElement("td");
+            h2hCell.colSpan = 6;
 
-        let h2hContent = `
-            <table class="h2h-table">
-                <thead>
+            let h2hContent = `
+                <table class="h2h-table">
+                    <thead>
+                        <tr>
+                            <th>Home Team</th>
+                            <th>Score</th>
+                            <th>Away Team</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            h2hData.forEach(match => {
+                h2hContent += `
                     <tr>
-                        <th>Home Team</th>
-                        <th>Score</th>
-                        <th>Away Team</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+                        <td>${match.home_name}</td>
+                        <td>${match.score}</td>
+                        <td>${match.away_name}</td>
+                        <td>${formatDateForH2H(match.date)}</td>
+                    </tr>`;
+            });
 
-        h2hData.forEach(match => {
             h2hContent += `
-                <tr>
-                    <td>${match.home_name}</td>
-                    <td>${match.score}</td>
-                    <td>${match.away_name}</td>
-                    <td>${formatDateForH2H(match.date)}</td>
-                </tr>`;
-        });
+                    </tbody>
+                </table>`;
 
-        h2hContent += `
-                </tbody>
-            </table>`;
+            h2hCell.innerHTML = h2hContent;
+            h2hRow.appendChild(h2hCell);
 
-        h2hCell.innerHTML = h2hContent;
-        h2hRow.appendChild(h2hCell);
+            matchRow.parentNode.insertBefore(h2hRow, matchRow.nextSibling);
 
-        matchRow.parentNode.insertBefore(h2hRow, matchRow.nextSibling);
+            
+            // Apply an initial highlight to the H2H row
+                    h2hRow.classList.add("initial-highlight");
 
-        // Apply an initial highlight to the H2H row
-        h2hRow.classList.add("initial-highlight");
-
-        // Function to add hover classes
-        function addHoverClasses() {
-            matchRow.classList.add("hover-highlight-row");
-            h2hRow.classList.add("hover-highlight");
-        }
-
-        // Function to remove hover classes
-        function removeHoverClasses() {
-            matchRow.classList.remove("hover-highlight-row");
-            h2hRow.classList.remove("hover-highlight");
-        }
-
-        // Set initial highlight to be removed when mouse leaves both matchRow and h2hRow
-        function handleMouseOut(event) {
-            // Check if mouse left both matchRow and h2hRow elements
-            const relatedTarget = event.relatedTarget;
-            if (!matchRow.contains(relatedTarget) && !h2hRow.contains(relatedTarget)) {
-                h2hRow.classList.remove("initial-highlight");
-                removeHoverClasses();
+            // Function to add hover classes
+            function addHoverClasses() {
+                matchRow.classList.add("hover-highlight-row");
+                h2hRow.classList.add("hover-highlight");
             }
+
+            // Function to remove hover classes
+            function removeHoverClasses() {
+                matchRow.classList.remove("hover-highlight-row");
+                h2hRow.classList.remove("hover-highlight");
+            }
+
+            // Set initial highlight to be removed when mouse leaves both matchRow and h2hRow
+            function handleMouseOut(event) {
+                // Check if mouse left both matchRow and h2hRow elements
+                const relatedTarget = event.relatedTarget;
+                if (!matchRow.contains(relatedTarget) && !h2hRow.contains(relatedTarget)) {
+                    h2hRow.classList.remove("initial-highlight");
+                    removeHoverClasses();
+                }
+            }
+
+            // Apply event listeners for hover effect
+            h2hRow.addEventListener("mouseover", addHoverClasses);
+            h2hRow.addEventListener("mouseout", handleMouseOut);
+            matchRow.addEventListener("mouseover", addHoverClasses);
+            matchRow.addEventListener("mouseout", handleMouseOut);
         }
-
-        // Apply event listeners for hover effect
-        h2hRow.addEventListener("mouseover", addHoverClasses);
-        h2hRow.addEventListener("mouseout", handleMouseOut);
-        matchRow.addEventListener("mouseover", addHoverClasses);
-        matchRow.addEventListener("mouseout", handleMouseOut);
     }
-
-}
-
+    // Format date for head-to-head table
     function formatDateForH2H(date) {
         const dateObj = new Date(date);
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return dateObj.toLocaleDateString('en-US', options);
     }
 
+    // Select match and add to the selected matches table
     function selectMatch(match) {
         const tableBody = document.querySelector("#selectedMatchesTable tbody");
 
@@ -557,9 +562,10 @@ async function fetchMatches() {
         tableBody.appendChild(row);
     }
 
+    // Clear table rows by table ID
     function clearTable(tableId) {
         const tableBody = document.querySelector(`#${tableId} tbody`);
-        tableBody.innerHTML = ""; 
+        tableBody.innerHTML = "";
     }
 </script>
 </body>
